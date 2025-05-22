@@ -1,6 +1,3 @@
-# pip install -r requirements.txt - run at the beginning.
-
-# app.py
 import os
 import base64
 import requests
@@ -8,7 +5,6 @@ from io import BytesIO
 from flask import Flask, render_template, request, redirect, url_for
 from PIL import Image
 import torch
-from transformers import BlipProcessor, BlipForConditionalGeneration
 from gtts import gTTS
 from dotenv import load_dotenv
 import google.generativeai as genai
@@ -20,16 +16,6 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 # Initialize Flask app
 app = Flask(__name__)
 
-@app.route("/")
-def home():
-    return render_template("index.html")
-
-if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 5000))  # Render assigns a dynamic port
-    app.run(host="0.0.0.0", port=port)
-
-
 # Set upload folder
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -38,12 +24,12 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 # Set device
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-# Load BLIP model
-processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base").to(device)
-
 # Generate caption
 def generate_caption(image, language):
+    from transformers import BlipProcessor, BlipForConditionalGeneration
+    processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+    model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base").to(device)
+
     inputs = processor(image, return_tensors="pt").to(device)
     output = model.generate(**inputs)
     caption_en = processor.decode(output[0], skip_special_tokens=True)
@@ -58,6 +44,7 @@ def generate_caption(image, language):
         )
         response = genai.GenerativeModel("gemini-1.5-flash").generate_content([prompt])
         return response.text.strip()
+
 # Summarize image
 def summarize_image(image, language):
     prompt = {
@@ -94,37 +81,29 @@ def index():
         image_path = os.path.join(app.config["UPLOAD_FOLDER"], "input_image.jpg")
         audio_path = os.path.join(app.config["UPLOAD_FOLDER"], "summary_audio.mp3")
 
-        # 1. File Upload
+        # Handle different image sources
         if "image_file" in request.files and request.files["image_file"].filename != "":
             file = request.files["image_file"]
             file.save(image_path)
-
-        # 2. Image URL
         elif request.form.get("image_url"):
             url = request.form.get("image_url")
             response = requests.get(url)
             img = Image.open(BytesIO(response.content)).convert("RGB")
             img.save(image_path)
-
-        # 3. Webcam (Base64)
         elif request.form.get("webcam_image"):
             img_data = request.form.get("webcam_image").split(',')[1]
             img_bytes = base64.b64decode(img_data)
             with open(image_path, 'wb') as f:
                 f.write(img_bytes)
-
         else:
             return redirect(url_for("index"))
 
-        # Open and process the image
         image = Image.open(image_path).convert("RGB")
         caption = generate_caption(image, lang)
         summary = summarize_image(image, lang)
 
-        # Generate and save audio
         text_to_speech(summary, lang, audio_path)
 
-        # Pass only relative paths to template
         return render_template(
             "index.html",
             image_path="uploads/input_image.jpg",
@@ -135,6 +114,7 @@ def index():
 
     return render_template("index.html")
 
-# Run the app
+# one __main__ block
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
