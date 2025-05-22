@@ -11,7 +11,10 @@ import google.generativeai as genai
 
 # Load environment variables
 load_dotenv()
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+if not GOOGLE_API_KEY:
+    raise ValueError("GOOGLE_API_KEY is not set in environment.")
+genai.configure(api_key=GOOGLE_API_KEY)
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -42,8 +45,12 @@ def generate_caption(image, language):
             "Do not include multiple options or explanations. "
             f"Sentence: {caption_en}"
         )
-        response = genai.GenerativeModel("gemini-1.5-flash").generate_content([prompt])
-        return response.text.strip()
+        try:
+            response = genai.GenerativeModel("gemini-1.5-flash").generate_content([prompt])
+            return response.text.strip()
+        except Exception as e:
+            print("Gemini API translation error:", e)
+            return caption_en  # Fallback to English
 
 # Summarize image
 def summarize_image(image, language):
@@ -59,62 +66,73 @@ def summarize_image(image, language):
             image
         ],
         "te": [
-            "ఈ చిత్రాన్ని అంధుల కోసం సరళంగా మరియు స్పష్టంగా వివరిస్తూ ఒక సంక్షిప్త వివరణ ఇవ్వండి. కేవలం విషయానికి సంబంధించిన వివరాలు మాత్రమే చెప్పండి.",
+            "ఈ చిత్రాన్ని అంధుల కోసం సరళంగా మరియు స్పష్టంగా వివరిస్తూ ఒక సంక్షిప్త వివరణ ఇవ్వండి.",
             "అవసరంలేని ఊహలు కాకుండా, చిత్రంలోని ముఖ్యమైన వివరాలను మాత్రమే వివరించండి.",
             image
         ]
     }
-    response = genai.GenerativeModel("gemini-1.5-flash").generate_content(prompt[language])
-    return response.text.strip()
+    try:
+        response = genai.GenerativeModel("gemini-1.5-flash").generate_content(prompt[language])
+        return response.text.strip()
+    except Exception as e:
+        print("Gemini API summary error:", e)
+        return "Could not summarize the image."
 
 # Convert text to speech
 def text_to_speech(text, lang, filename):
-    tts = gTTS(text=text, lang=lang)
-    tts.save(filename)
-    return filename
+    try:
+        tts = gTTS(text=text, lang=lang)
+        tts.save(filename)
+    except Exception as e:
+        print("TTS error:", e)
 
 # Home route
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        lang = request.form.get("language", "en")
-        image_path = os.path.join(app.config["UPLOAD_FOLDER"], "input_image.jpg")
-        audio_path = os.path.join(app.config["UPLOAD_FOLDER"], "summary_audio.mp3")
+        try:
+            lang = request.form.get("language", "en")
+            image_path = os.path.join(app.config["UPLOAD_FOLDER"], "input_image.jpg")
+            audio_path = os.path.join(app.config["UPLOAD_FOLDER"], "summary_audio.mp3")
 
-        # Handle different image sources
-        if "image_file" in request.files and request.files["image_file"].filename != "":
-            file = request.files["image_file"]
-            file.save(image_path)
-        elif request.form.get("image_url"):
-            url = request.form.get("image_url")
-            response = requests.get(url)
-            img = Image.open(BytesIO(response.content)).convert("RGB")
-            img.save(image_path)
-        elif request.form.get("webcam_image"):
-            img_data = request.form.get("webcam_image").split(',')[1]
-            img_bytes = base64.b64decode(img_data)
-            with open(image_path, 'wb') as f:
-                f.write(img_bytes)
-        else:
-            return redirect(url_for("index"))
+            # Handle different image sources
+            if "image_file" in request.files and request.files["image_file"].filename != "":
+                file = request.files["image_file"]
+                file.save(image_path)
+            elif request.form.get("image_url"):
+                url = request.form.get("image_url")
+                response = requests.get(url)
+                img = Image.open(BytesIO(response.content)).convert("RGB")
+                img.save(image_path)
+            elif request.form.get("webcam_image"):
+                img_data = request.form.get("webcam_image").split(',')[1]
+                img_bytes = base64.b64decode(img_data)
+                with open(image_path, 'wb') as f:
+                    f.write(img_bytes)
+            else:
+                return redirect(url_for("index"))
 
-        image = Image.open(image_path).convert("RGB")
-        caption = generate_caption(image, lang)
-        summary = summarize_image(image, lang)
+            image = Image.open(image_path).convert("RGB")
+            caption = generate_caption(image, lang)
+            summary = summarize_image(image, lang)
 
-        text_to_speech(summary, lang, audio_path)
+            text_to_speech(summary, lang, audio_path)
 
-        return render_template(
-            "index.html",
-            image_path="uploads/input_image.jpg",
-            caption=caption,
-            summary=summary,
-            audio_path="uploads/summary_audio.mp3"
-        )
+            return render_template(
+                "index.html",
+                image_path="uploads/input_image.jpg",
+                caption=caption,
+                summary=summary,
+                audio_path="uploads/summary_audio.mp3"
+            )
+
+        except Exception as e:
+            print("Exception in POST handler:", e)
+            return f"Something went wrong: {str(e)}", 500
 
     return render_template("index.html")
 
-# one __main__ block
+# Run the app
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, debug=True)
