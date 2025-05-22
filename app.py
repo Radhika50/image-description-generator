@@ -20,6 +20,13 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 # Initialize Flask app
 app = Flask(__name__)
 
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
 # Set upload folder
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
