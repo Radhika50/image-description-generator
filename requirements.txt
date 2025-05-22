@@ -1,0 +1,8 @@
+flask
+torch
+transformers
+Pillow
+gtts
+google-generativeai
+python-dotenv
+requests

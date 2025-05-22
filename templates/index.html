@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SnapNarrate</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #5c6bc0;
+      --secondary-color: #8e99f3; 
+      --accent-color: #4e3ef3;
+      --light-bg: #f8f9ff;
+      --dark-text: #333;
+      --light-text: #767676;
+      --success-color: #4CAF50;
+      --danger-color: #e53935;
+      --card-shadow: 0 10px 30px rgba(92, 107, 192, 0.15);
+      --input-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      --transition: all 0.3s ease;
+    }
+    
+    body {
+      background: var(--light-bg);
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
+      color: var(--dark-text);
+      line-height: 1.6;
+    }
+    
+    .app-container {
+      max-width: 1140px;
+      margin: 2rem auto;
+    }
+    
+    .main-card {
+      border: none;
+      border-radius: 24px;
+      box-shadow: var(--card-shadow);
+      overflow: hidden;
+      background: white;
+    }
+    
+    .app-header {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      padding: 2rem 1rem;
+      text-align: center;
+      color: white;
+      border-radius: 24px 24px 0 0;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .app-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 60%);
+      pointer-events: none;
+    }
+    
+    .app-header h2 {
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      letter-spacing: 1px;
+    }
+    
+    .app-header p {
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .app-body {
+      padding: 2rem;
+    }
+    
+    .input-option-group {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    
+    .btn-option {
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: var(--transition);
+      box-shadow: var(--input-shadow);
+    }
+    
+    .btn-option:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-option i {
+      font-size: 1.2rem;
+    }
+    
+    .btn-upload {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+      color: white;
+    }
+    
+    .btn-url {
+      background-color: white;
+      border-color: #ddd;
+      color: var(--dark-text);
+    }
+    
+    .btn-camera {
+      background-color: var(--accent-color);
+      border-color: var(--accent-color);
+      color: white;
+    }
+    
+    .language-select {
+      background-color: white;
+      border-radius: 12px;
+      padding: 0.75rem;
+      border-color: #ddd;
+      box-shadow: var(--input-shadow);
+      transition: var(--transition);
+    }
+    
+    .language-select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.25rem rgba(92, 107, 192, 0.25);
+    }
+    
+    .input-container {
+      margin-bottom: 1.5rem;
+      transition: var(--transition);
+    }
+    
+    .input-container label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--light-text);
+    }
+    
+    .form-control {
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      border-color: #ddd;
+      box-shadow: var(--input-shadow);
+      transition: var(--transition);
+    }
+    
+    .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.25rem rgba(92, 107, 192, 0.25);
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .file-upload-wrapper {
+      position: relative;
+      border: 2px dashed #ddd;
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      transition: var(--transition);
+      background-color: #fafafa;
+      cursor: pointer;
+    }
+    
+    .file-upload-wrapper:hover {
+      border-color: var(--primary-color);
+      background-color: #f0f4ff;
+    }
+    
+    .file-upload-wrapper input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+    
+    .file-upload-wrapper i {
+      font-size: 2.5rem;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+    
+    .file-upload-wrapper p {
+      margin-bottom: 0;
+      color: var(--light-text);
+    }
+    
+    .webcam-container {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--input-shadow);
+    }
+    
+    .webcam-container video {
+      width: 100%;
+      border-radius: 16px;
+      transform: scaleX(-1);
+    }
+    
+    .webcam-controls {
+      display: flex;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+    
+    .btn-capture {
+      background-color: var(--danger-color);
+      color: white;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      border: 4px solid white;
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+    }
+    
+    .btn-capture:hover {
+      transform: scale(1.1);
+      background-color: #d32f2f;
+    }
+    
+    .url-input-container {
+      position: relative;
+    }
+    
+    .url-input-container i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--light-text);
+    }
+    
+    .url-input-container input {
+      padding-left: 45px;
+    }
+    
+    .btn-generate {
+      background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 0.75rem 3rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 15px rgba(92, 107, 192, 0.3);
+      transition: var(--transition);
+    }
+    
+    .btn-generate:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(92, 107, 192, 0.4);
+    }
+    
+    .btn-generate:active {
+      transform: translateY(1px);
+    }
+    
+    .upload-status {
+      background-color: #e8f5e9;
+      border-left: 4px solid var(--success-color);
+      padding: 1rem;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      transition: var(--transition);
+      margin-bottom: 1.5rem;
+    }
+    
+    .upload-status i {
+      color: var(--success-color);
+      font-size: 1.5rem;
+      margin-right: 1rem;
+    }
+    
+    .output-section {
+      margin-top: 3rem;
+      border-top: 1px solid #eee;
+      padding-top: 2rem;
+    }
+    
+    .output-title {
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+    }
+    
+    .output-title i {
+      margin-right: 0.5rem;
+    }
+    
+    .image-preview {
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+    }
+    
+    .image-preview img {
+      width: 100%;
+    }
+    
+    .output-box {
+      background-color: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      border: 1px solid #eee;
+      box-shadow: var(--card-shadow);
+      height: 100%;
+    }
+    
+    .caption-block {
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: var(--primary-color);
+    }
+    
+    .output-content {
+      color: var(--dark-text);
+      line-height: 1.7;
+    }
+    
+    .audio-player {
+      background: linear-gradient(135deg, #f5f7ff, #e8eafd);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-top: 1.5rem;
+    }
+    
+    .audio-player audio {
+      width: 100%;
+    }
+    
+    @media (max-width: 768px) {
+      .app-body {
+        padding: 1.5rem;
+      }
+      
+      .btn-option {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+      }
+      
+      .output-section .col-md-6:first-child {
+        margin-bottom: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+  <div class="main-card">
+    <div class="app-header">
+      <h2><i class="fas fa-camera-retro"></i> SnapNarrate</h2>
+      <p>Upload an image and get AI-generated captions, summaries, and audio narration</p>
+    </div>
+    
+    <div class="app-body">
+      <!-- Input Options -->
+      <form method="POST" enctype="multipart/form-data">
+        <div class="input-option-group">
+          <button type="button" class="btn btn-option btn-upload" onclick="showInput('file')">
+            <i class="fas fa-upload"></i> Upload Image
+          </button>
+          <button type="button" class="btn btn-option btn-url" onclick="showInput('url')">
+            <i class="fas fa-link"></i> Paste URL
+          </button>
+          <button type="button" class="btn btn-option btn-camera" onclick="showInput('camera')">
+            <i class="fas fa-camera"></i> Live Webcam
+          </button>
+          <select class="form-select language-select" name="language">
+            <option value="en">English</option>
+            <option value="hi">Hindi</option>
+            <option value="te">Telugu</option>
+          </select>
+        </div>
+
+        <!-- File Upload -->
+        <div id="fileInput" class="input-container hidden">
+          <label>Choose an image from your device</label>
+          <div class="file-upload-wrapper">
+            <input class="form-control" type="file" name="image_file" accept="image/*">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Drag and drop an image or click to browse</p>
+          </div>
+        </div>
+
+        <!-- URL Input -->
+        <div id="urlInput" class="input-container hidden">
+          <label>Enter image URL</label>
+          <div class="url-input-container">
+            <i class="fas fa-globe"></i>
+            <input class="form-control" type="url" name="image_url" placeholder="https://example.com/image.jpg">
+          </div>
+        </div>
+
+        <!-- Webcam Input -->
+        <div id="cameraInput" class="input-container hidden">
+          <label>Capture from your webcam</label>
+          <div class="webcam-container">
+            <video id="video" autoplay></video>
+            <input type="hidden" name="webcam_image" id="webcam_image">
+            <canvas id="canvas" class="d-none"></canvas>
+          </div>
+          <div class="webcam-controls">
+            <button type="button" class="btn btn-capture" onclick="captureImage()">
+              <i class="fas fa-camera"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Upload Status Message -->
+        <div id="uploadStatus" class="upload-status d-none">
+          <i class="fas fa-check-circle"></i>
+          <span>Image successfully uploaded and ready for processing</span>
+        </div>
+
+        <div class="d-flex justify-content-center mt-4">
+          <button type="submit" class="btn btn-generate">
+            <i class="fas fa-magic"></i> Generate Narration
+          </button>
+        </div>
+      </form>
+
+      <!-- Output Section -->
+      {% if image_path %}
+      <div class="output-section">
+        <div class="row">
+          <div class="col-md-6">
+            <h5 class="output-title"><i class="fas fa-image"></i> Your Image</h5>
+            <div class="image-preview">
+              <img src="{{ url_for('static', filename=image_path) }}" alt="User Image" class="img-fluid">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <h5 class="output-title"><i class="fas fa-robot"></i> AI Generated Content</h5>
+            <div class="output-box">
+              <div class="caption-block"><i class="fas fa-quote-left"></i> Caption</div>
+              <p class="output-content">{{ caption }}</p>
+              
+              <div class="caption-block mt-4"><i class="fas fa-align-left"></i> Summary</div>
+              <p class="output-content">{{ summary }}</p>
+              
+              <div class="audio-player">
+                <div class="caption-block"><i class="fas fa-volume-up"></i> Audio Narration</div>
+                <audio controls class="w-100">
+                  <source src="{{ url_for('static', filename=audio_path) }}" type="audio/mpeg">
+                  Your browser does not support the audio element.
+                </audio>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+  let videoStream = null;
+
+  function showInput(method) {
+    ['fileInput', 'urlInput', 'cameraInput'].forEach(id => {
+      document.getElementById(id).classList.add('hidden');
+    });
+    document.getElementById('uploadStatus').classList.add('d-none');
+
+    if (method === 'file') {
+      document.getElementById('fileInput').classList.remove('hidden');
+    } else if (method === 'url') {
+      document.getElementById('urlInput').classList.remove('hidden');
+    } else if (method === 'camera') {
+      document.getElementById('cameraInput').classList.remove('hidden');
+      startCamera();
+    }
+  }
+
+  function startCamera() {
+    const video = document.getElementById('video');
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        videoStream = stream;
+        video.srcObject = stream;
+      }).catch(() => {
+        alert("Could not access the webcam. Please ensure you have granted camera permissions.");
+      });
+  }
+
+  function captureImage() {
+    const canvas = document.getElementById('canvas');
+    const video = document.getElementById('video');
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    
+    const imageData = canvas.toDataURL('image/jpeg');
+    document.getElementById('webcam_image').value = imageData;
+
+    if (videoStream) {
+      videoStream.getTracks().forEach(track => track.stop());
+      video.srcObject = null;
+    }
+
+    document.getElementById('cameraInput').classList.add('hidden');
+    showUploadStatus();
+  }
+
+  function showUploadStatus() {
+    const status = document.getElementById('uploadStatus');
+    status.classList.remove('d-none');
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    // Show file input by default
+    showInput('file');
+    
+    const fileInput = document.querySelector('input[name="image_file"]');
+    const urlInput = document.querySelector('input[name="image_url"]');
+
+    if (fileInput) {
+      fileInput.addEventListener("change", function() {
+        if (fileInput.files.length > 0) {
+          showUploadStatus();
+        }
+      });
+    }
+
+    if (urlInput) {
+      urlInput.addEventListener("input", function () {
+        if (urlInput.value.trim().length > 5) {
+          showUploadStatus();
+        }
+      });
+    }
+  });
+</script>
+</body>
+</html>
