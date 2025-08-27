@@ -1,7 +1,6 @@
-# image-description-generator
 # AI-Powered Image Description & Voice Output 
 
- A web-based application that leverages AI to generate meaningful captions and spoken descriptions from images. Designed with accessibility and multilingual support in mind, the system allows users to upload or capture an image, and then receive a context-rich description in **English**, **Hindi**, or **Telugu** — both as **text and audio**.
+A web-based application that leverages AI to generate meaningful captions and spoken descriptions from images. Designed with accessibility and multilingual support in mind, the system allows users to upload or capture an image, and then receive a context-rich description in **English**, **Hindi**, or **Telugu** — both as **text and audio**.
 
 This project integrates three core technologies:
 
